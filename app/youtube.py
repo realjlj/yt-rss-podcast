@@ -5,12 +5,15 @@ AUDIO_DIR = os.path.join(os.path.dirname(__file__), 'static', 'audio')
 
 from datetime import datetime, timezone, timedelta
 
+cookies_path = '/var/render/secrets/youtube_cookies.txt'
+
 def fetch_playlist_videos(playlist_id, download_audio=False):
 	url = f"https://www.youtube.com/playlist?list={playlist_id}"
 	ydl_opts = {
 		'quiet': True,
 		'extract_flat': False,  # must be False to get video publish dates
 		'skip_download': True,
+		'cookiefile': cookies_path,
 	}
 
 	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -41,8 +44,6 @@ def download_audio_file(video_id):
 	output_path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
 	if os.path.exists(output_path):
 		return True
-	
-	cookies_path = '/var/render/secrets/youtube_cookies.txt'
 	
 	ydl_opts = {
 		'format': 'bestaudio/best',
