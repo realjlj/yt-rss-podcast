@@ -26,18 +26,26 @@ def fetch_playlist_videos(playlist_id, download_audio=False):
 def download_audio_file(video_id):
 	output_path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
 	if os.path.exists(output_path):
-		return  # already downloaded
-
+		return True
+	
+	cookies_path = os.path.join(os.path.dirname(__file__), 'cookies', 'youtube.com_cookies.txt')
+	
 	ydl_opts = {
 		'format': 'bestaudio/best',
 		'quiet': True,
 		'outtmpl': os.path.join(AUDIO_DIR, f"{video_id}.%(ext)s"),
+		'cookiefile': cookies_path,
 		'postprocessors': [{
 			'key': 'FFmpegExtractAudio',
 			'preferredcodec': 'mp3',
 			'preferredquality': '192',
 		}],
 	}
-
-	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-		ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+	
+	try:
+		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+			ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+		return True
+	except Exception as e:
+		print(f"Failed to download {video_id}: {e}")
+		return False
