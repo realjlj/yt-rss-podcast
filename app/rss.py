@@ -18,7 +18,8 @@ def generate_rss_feed(videos, playlist_id, public_base_url):
 		fe.guid(video_id)
 
 		# Fallback publish time
-		fe.pubDate(datetime.utcnow().replace(tzinfo=timezone.utc))
+		pub_date = video.get('parsed_date', datetime.utcnow().replace(tzinfo=timezone.utc))
+		fe.pubDate(pub_date)
 
 		# Add enclosure
 		audio_url = f"{public_base_url}/static/audio/{video_id}.mp3"
