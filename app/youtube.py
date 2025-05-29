@@ -28,7 +28,7 @@ def download_audio_file(video_id):
 	if os.path.exists(output_path):
 		return True
 	
-	cookies_path = os.path.join(os.path.dirname(__file__), 'cookies', 'youtube.com_cookies.txt')
+	cookies_path = '/var/render/secrets/youtube_cookies.txt'
 	
 	ydl_opts = {
 		'format': 'bestaudio/best',
