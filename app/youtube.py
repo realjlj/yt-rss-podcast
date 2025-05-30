@@ -5,7 +5,7 @@ AUDIO_DIR = os.path.join(os.path.dirname(__file__), 'static', 'audio')
 
 from datetime import datetime, timezone, timedelta
 
-cookies_path = '/var/render/secrets/youtube_cookies.txt'
+cookies_path = '/etc/secrets/youtube_cookies.txt'
 
 def fetch_playlist_videos(playlist_id, download_audio=False):
 	url = f"https://www.youtube.com/playlist?list={playlist_id}"
