@@ -11,6 +11,7 @@ def fetch_playlist_videos(playlist_id, download_audio=False):
 		'quiet': True,
 		'extract_flat': False,  # must be False to get video publish dates
 		'skip_download': True,
+		'cookiefile': '/etc/secrets/youtube_cookies.txt',
 		'save_cookie': False,
 	}
 
