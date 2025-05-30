@@ -6,19 +6,18 @@ AUDIO_DIR = os.path.join(os.path.dirname(__file__), 'static', 'audio')
 cookies_path = '/etc/secrets/youtube_cookies.txt'
 
 def fetch_playlist_videos(playlist_id, download_audio=False):
-	url = f"https://www.youtube.com/playlist?list={playlist_id}"
-	ydl_opts = {
-		'quiet': True,
-		'extract_flat': False,
-		'skip_download': True,
-		'cookiefile': cookies_path,
-		'save_cookie': False,  # still include this
-	}
+url = f"https://www.youtube.com/playlist?list={playlist_id}"
+ydl_opts = {
+	'quiet': True,
+	'extract_flat': False,
+	'skip_download': True,
+	'cookiefile': '/etc/secrets/youtube_cookies.txt',
+	'nocookiefile': True,  # 🔐 disable saving cookies
+}
 
-	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-		# ❗️Prevent yt_dlp from trying to write cookies on close
-		ydl.cookiefile = None
-		info = ydl.extract_info(url, download=False)
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+	ydl._cookiefile = None  # 🔐 prevent writing
+	info = ydl.extract_info(url, download=False)
 
 	videos = info.get('entries', [])
 	one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
@@ -42,25 +41,26 @@ def download_audio_file(video_id):
 	output_path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
 	if os.path.exists(output_path):
 		return True
-
+	
 	ydl_opts = {
 		'format': 'bestaudio/best',
 		'outtmpl': os.path.join(AUDIO_DIR, f"{video_id}.%(ext)s"),
 		'cookiefile': cookies_path,
+		'nocookiefile': True,  # ✅ important
 		'quiet': True,
 		'nooverwrites': True,
+		'noconfig': True,
+		'save_cookie': False,
 		'postprocessors': [{
 			'key': 'FFmpegExtractAudio',
 			'preferredcodec': 'mp3',
 			'preferredquality': '192',
 		}],
-		'noconfig': True,
-		'save_cookie': False,
 	}
-
+	
 	try:
 		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-			ydl.cookiefile = None
+			ydl._cookiefile = None  # ✅ prevent write on close
 			ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
 		return True
 	except Exception as e:
