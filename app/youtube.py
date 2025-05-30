@@ -6,38 +6,38 @@ AUDIO_DIR = os.path.join(os.path.dirname(__file__), 'static', 'audio')
 from datetime import datetime, timezone, timedelta
 
 def fetch_playlist_videos(playlist_id, download_audio=False):
-	url = f"https://www.youtube.com/playlist?list={playlist_id}"
-	ydl_opts = {
-		'quiet': True,
-		'extract_flat': False,  # must be False to get video publish dates
-		'skip_download': True,
-		'cookiefile': '/etc/secrets/youtube_cookies.txt',
-		'save_cookie': False,
-	}
+url = f"https://www.youtube.com/playlist?list={playlist_id}"
+ydl_opts = {
+	'quiet': True,
+	'extract_flat': False,
+	'skip_download': True,
+	'cookiefile': '/etc/secrets/youtube_cookies.txt',
+	'save_cookie': False,  # still include this
+}
 
-	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-		info = ydl.extract_info(url, download=False)
+with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+	# ❗️This line prevents writing the cookie file on close
+	ydl.cookiefile = None
+	info = ydl.extract_info(url, download=False)
 
-	videos = info.get('entries', [])
+videos = info.get('entries', [])
 
-	# Filter videos published in the last 7 days
-	one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-	recent_videos = []
+one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+recent_videos = []
 
-	for video in videos:
-		upload_date = video.get('upload_date')
-		if not upload_date:
-			continue
-		# Convert YouTube date string (e.g., '20250522') to datetime
-		video_date = datetime.strptime(upload_date, '%Y%m%d').replace(tzinfo=timezone.utc)
-		if video_date >= one_week_ago:
-			video['parsed_date'] = video_date
-			if download_audio:
-				success = download_audio_file(video['id'])
-				video['audio_downloaded'] = success
-			recent_videos.append(video)
+for video in videos:
+	upload_date = video.get('upload_date')
+	if not upload_date:
+		continue
+	video_date = datetime.strptime(upload_date, '%Y%m%d').replace(tzinfo=timezone.utc)
+	if video_date >= one_week_ago:
+		video['parsed_date'] = video_date
+		if download_audio:
+			success = download_audio_file(video['id'])
+			video['audio_downloaded'] = success
+		recent_videos.append(video)
 
-	return recent_videos
+return recent_videos
 
 def download_audio_file(video_id):
 	output_path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
