@@ -12,11 +12,12 @@ def fetch_playlist_videos(playlist_id, download_audio=False):
 		'extract_flat': False,
 		'skip_download': True,
 		'cookiefile': cookies_path,
-		'nocookiefile': True,  # 🔐 disable saving cookies
+		'save_cookie': False,
+		'nocookiefile': True,
 	}
 
 	with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-		ydl._cookiefile = None  # 🔐 prevent writing
+		ydl.cookiejar.save = lambda *args, **kwargs: None
 		info = ydl.extract_info(url, download=False)
 
 	videos = info.get('entries', [])
@@ -51,6 +52,7 @@ def download_audio_file(video_id):
 		'nooverwrites': True,
 		'noconfig': True,
 		'save_cookie': False,
+		'nocookiefile': True,
 		'postprocessors': [{
 			'key': 'FFmpegExtractAudio',
 			'preferredcodec': 'mp3',
@@ -60,7 +62,7 @@ def download_audio_file(video_id):
 
 	try:
 		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-			ydl._cookiefile = None  # ✅ prevent write on close
+			ydl.cookiejar.save = lambda *args, **kwargs: None
 			ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
 		return True
 	except Exception as e:
